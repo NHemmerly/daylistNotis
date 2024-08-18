@@ -1,2 +1,6 @@
-.secrets/
 .envrc
+.direnv/
+.secrets/
+build/
+_deps/
+CMakeFiles/
