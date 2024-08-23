@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(daylistNotis)
 
-add_executable(daylistNotis src/main.cpp includes/readTxt.h)
+add_executable(daylistNotis src/main.cpp includes/readTxt.h includes/base64/base64.hpp)
 
 include(FetchContent)
 FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
