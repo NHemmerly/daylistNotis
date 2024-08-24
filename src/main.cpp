@@ -22,6 +22,19 @@ const std::string& getAuthCode(std::string& authCode)
     return authCode;
 }
 
+const std::string& storeDaylist(const json& jsonItem, std::string& listItems)
+{
+    for (int i = 0; i < 10; ++i)
+    {
+        listItems += std::to_string(i + 1) + ". "
+                  + jsonItem["tracks"]["items"][i]["track"]["name"].get<std::string>() 
+                  + " - " 
+                  + jsonItem["tracks"]["items"][i]["track"]["artists"][0]["name"].get<std::string>() 
+                  + "\n";
+    }
+    return listItems;
+}
+
 int main()
 {
     const std::string playlist      {"https://api.spotify.com/v1/me/playlists"};
@@ -106,15 +119,12 @@ int main()
 
 
     const std::string daylistName {daylist_J["name"]}; 
-    std::cout << daylistName << std::endl;                                                      
+    std::cout << daylistName << std::endl;
 
-    for (int i = 0; i < 10; ++i)
-    {
-        std::cout << daylist_J["tracks"]["items"][i]["track"]["name"].get<std::string>() 
-                  << " - " 
-                  << daylist_J["tracks"]["items"][i]["track"]["artists"][0]["name"].get<std::string>() 
-                  << std::endl;
-    }
+    std::string daylistItems {};
+    daylistItems = storeDaylist(daylist_J, daylistItems);
+
+    std::cout << daylistItems << std::endl;
 
     //First time auth with gmail api
 
@@ -125,11 +135,10 @@ int main()
                                             gmailClient + 
                                             "&redirect_uri=http://localhost:8080&response_type=code&scope=https://www.googleapis.com/auth/gmail.compose&access_type=offline";
 
-        std::cout << gmailAuthUrl << std::endl; //User can click this on first time setup to get first-time access-token and refresh token
+        std::cout << gmailAuthUrl << std::endl;
 
         std::string gmailAuthCode {};
         gmailAuthCode = getAuthCode(gmailAuthCode);
-
 
         //Retrieve access code and refresh token
 
@@ -162,18 +171,14 @@ int main()
     }
 
     std::string testString = {reader.getText("test.txt")};
-
-    std::cout << testString << std::endl;
-
-
-    //message testing
     
+    testString += "Subject: " + daylistName + "\n\n";
+
+    testString += daylistItems;
     std::string rawTest = base64::to_base64(testString);
 
     json raw;
     raw["raw"] = rawTest;
-
-    std::cout << rawTest << std::endl;
 
     cpr::Response send_message = cpr::Post(cpr::Url{gmailSend},
                     cpr::Body{{raw.dump()}},
@@ -182,19 +187,4 @@ int main()
 
     std::cout << send_message.text << std::endl;
     
-    // It works :)
-
-    // TODO
-    // Create a way to format the email message, as well as find a library that can convert strings to Base64 (or write a function)
-    // Refactor... Literally everything...
-
-    /* Mime Format
-        From: sample <sample@gmail.com>
-        To: sampleNum <sampleNum@vzwpix.com>
-        Subject: Saying Hello
-        Date: Thu, 22 Aug 2024 19:31:27 -0700
-
-        This is a message just to say hello. So, "Hello".
-    */
-
 }
