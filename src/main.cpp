@@ -168,12 +168,15 @@ int main()
 
     //message testing
     
-    const std::string rawTest {base64::to_base64(testString)};
+    std::string rawTest = base64::to_base64(testString);
+
+    json raw;
+    raw["raw"] = rawTest;
 
     std::cout << rawTest << std::endl;
 
     cpr::Response send_message = cpr::Post(cpr::Url{gmailSend},
-                    cpr::Body{{"{\n\traw: " + rawTest + "}"}},
+                    cpr::Body{{raw.dump()}},
                     cpr::Header{{"authorization", "Bearer "+ gmailAccess},
                                 {"Content-Type", "application/json"}});
 
