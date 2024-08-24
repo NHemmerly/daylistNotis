@@ -161,10 +161,16 @@ int main()
         gmailAccess = gmail_access_J["access_token"];
     }
 
+    std::string testString = {reader.getText("test.txt")};
+
+    std::cout << testString << std::endl;
 
 
     //message testing
-    const std::string rawTest {};
+    
+    const std::string rawTest {base64::to_base64(testString)};
+
+    std::cout << rawTest << std::endl;
 
     cpr::Response send_message = cpr::Post(cpr::Url{gmailSend},
                     cpr::Body{{"{\n\traw: " + rawTest + "}"}},
@@ -172,6 +178,7 @@ int main()
                                 {"Content-Type", "application/json"}});
 
     std::cout << send_message.text << std::endl;
+    
     // It works :)
 
     // TODO

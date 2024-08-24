@@ -18,11 +18,17 @@ class Reader
             if (newFile.is_open())
             {
                 std::string line;
+                int lineCount {0};
                 text.clear();
 
                 while (std::getline(newFile, line))
                 {
-                    text += line;
+                    text += line + "\n";
+                    ++lineCount;
+                }
+                if (lineCount < 2)
+                {
+                    text.pop_back();
                 }
                 newFile.close();
             } else {
