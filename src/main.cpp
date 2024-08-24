@@ -4,10 +4,10 @@
 #include "../includes/readTxt.h"
 #include "../includes/nlohmann/json.hpp"
 #include "../includes/base64/base64.hpp"
+#include "../includes/ccpotify.h"
 
 #define CLIENT_SECRET   "client_secret.txt"
 #define CLIENT_ID       "client_id.txt"
-#define REFRESH_TOKEN   "refresh.txt"
 #define AUTH64          "auth64.txt"
 #define GMAIL_CLIENT    "gmail_client.txt"
 #define GMAIL_SECRET    "gmail_secret.txt"
@@ -37,9 +37,6 @@ const std::string& storeDaylist(const json& jsonItem, std::string& listItems)
 
 int main()
 {
-    const std::string playlist      {"https://api.spotify.com/v1/me/playlists"};
-    const std::string token         {"https://accounts.spotify.com/api/token"};
-    const std::string authorize     {"https://accounts.spotify.com/authorize"};
     const std::string gmailAuth     {"https://accounts.google.com/o/oauth2/auth"};
     const std::string gmailToken    {"https://oauth2.googleapis.com/token"};
     const std::string gmailSend     {"https://gmail.googleapis.com/gmail/v1/users/me/messages/send"};
@@ -50,7 +47,6 @@ int main()
     const std::string clientId      {reader.getText(CLIENT_ID)};
     const std::string auth64        {reader.getText(AUTH64)};
 
-    std::string refresh             {reader.getText(REFRESH_TOKEN)};
     std::string accessToken{};
 
     const std::string gmailClient   {reader.getText(GMAIL_CLIENT)};
@@ -60,63 +56,18 @@ int main()
     std::string gmailAccess         {};
 
     json gmail_access_J {};
-    json spotify_token_J {};
     json daylist_J {};
-    json spotify_refresh_J {};
 
     // Basically all of the above could exist as #defines or as local variables farther down
     // no need to globalize throughout main 
     // URLs are a prime candidate for #defines client secrets and IDs only need to stay around for their respective 
     // API calls and then they can dip
 
-    if (refresh.empty())
-    {
-        cpr::Response spotifyAuth = cpr::Get(cpr::Url{authorize},
-                        cpr::Parameters{{"response_type","code"},
-                                        {"client_id", clientId},
-                                        {"redirect_uri", redirect},
-                                        {"scope", "playlist-read-private"},
-                                        {"show_dialog", "true"}},
-                        cpr::Header{{"Content-Type", "application/x-www-form-urlencoded"}});
+    CCpotify ccpotify {clientId, clientSecret, auth64};
 
-        std::cout << spotifyAuth.url << std::endl;                                                           //1. Use this URL to authenticate for the first time
+    ccpotify.setAccessToken(ccpotify.getAccessToken());
 
-        std::string authCode{};
-        authCode = getAuthCode(authCode);                                                          //2. After being redirected, copy and paste code from URL into the terminal
-
-        cpr::Response spotifyToken = cpr::Post(cpr::Url{token},                                      //3. New Request created using the code pasted in 2
-                        cpr::Parameters{{"grant_type", "authorization_code"},
-                                        {"code", authCode},
-                                        {"redirect_uri",redirect}},
-                        cpr::Header{{"Authorization", "Basic " + auth64},
-                                    {"Content-Type", "application/x-www-form-urlencoded"}});
-
-        spotify_token_J = json::parse(spotifyToken.text);                                          //4. Access Token and refresh token saved to dedicated variables
-        accessToken = spotify_token_J[0]["access_token"];
-        refresh = spotify_token_J[0]["refresh_token"].get<std::string>();
-
-        reader.writeText(REFRESH_TOKEN, refresh);
-
-    } else 
-    {
-        cpr::Response refreshedToken = cpr::Post(cpr::Url{token},
-                        cpr::Parameters{{"grant_type", "refresh_token"},
-                                        {"refresh_token", refresh}},
-                        cpr::Header{{"Content-Type", "application/x-www-form-urlencoded"},
-                                    {"Authorization", "Basic " + auth64}});
-        spotify_refresh_J = json::parse(refreshedToken.text);
-
-        accessToken = spotify_refresh_J["access_token"];
-
-    }
-
-    std::cout << refresh << std::endl;
-
-    cpr::Response daylist_R = cpr::Get(cpr::Url{"https://api.spotify.com/v1/playlists/37i9dQZF1EP6YuccBxUcC1"},
-                    cpr::Header{{"Authorization", "Bearer " + accessToken}});
-
-    daylist_J = json::parse(daylist_R.text);
-
+    daylist_J = ccpotify.getPlaylist("https://api.spotify.com/v1/playlists/37i9dQZF1EP6YuccBxUcC1");
 
     const std::string daylistName {daylist_J["name"]}; 
     std::cout << daylistName << std::endl;
