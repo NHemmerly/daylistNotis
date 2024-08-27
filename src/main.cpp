@@ -5,6 +5,7 @@
 #include "../includes/nlohmann/json.hpp"
 #include "../includes/base64/base64.hpp"
 #include "../includes/ccpotify.h"
+#include "../includes/cppgmail.h"
 
 #define CLIENT_SECRET   "client_secret.txt"
 #define CLIENT_ID       "client_id.txt"
@@ -64,6 +65,7 @@ int main()
     // API calls and then they can dip
 
     CCpotify ccpotify {clientId, clientSecret, auth64};
+    Cppgmail cppgmail {gmailClient, gmailSecret};
 
     ccpotify.setAccessToken(ccpotify.getAccessToken());
 
@@ -78,7 +80,7 @@ int main()
     std::cout << daylistItems << std::endl;
 
     //First time auth with gmail api
-
+    /*
     if (gmailRefresh.empty())
     {
 
@@ -120,6 +122,9 @@ int main()
         gmail_access_J = json::parse(gmail_refresh.text);
         gmailAccess = gmail_access_J["access_token"];
     }
+    */
+
+    cppgmail.setAccessToken(cppgmail.getAccessToken());
 
     std::string testString = {reader.getText("test.txt")};
     
@@ -131,11 +136,5 @@ int main()
     json raw;
     raw["raw"] = rawTest;
 
-    cpr::Response send_message = cpr::Post(cpr::Url{gmailSend},
-                    cpr::Body{{raw.dump()}},
-                    cpr::Header{{"authorization", "Bearer "+ gmailAccess},
-                                {"Content-Type", "application/json"}});
-
-    std::cout << send_message.text << std::endl;
-    
+    cppgmail.sendMessage(raw);    
 }

@@ -96,7 +96,7 @@ class CCpotify
         //tokens
         std::string m_authCode{};
         std::string m_accessToken {};
-        std::string m_refresh {}; //reader.getText("spotify_refresh.txt")
+        std::string m_refresh {reader.getText("spotify_refresh.txt")}; //reader.getText("spotify_refresh.txt")
         //jsonResponses
         nlohmann::json m_response_J {};
 
