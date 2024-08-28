@@ -43,6 +43,8 @@ int main()
     ccpotify.setAccessToken(ccpotify.getAccessToken());
 
     daylist_J = ccpotify.getPlaylist("https://api.spotify.com/v1/playlists/37i9dQZF1EP6YuccBxUcC1");
+    daylist_J = ccpotify.getPlaylist("https://api.spotify.com/v1/playlists/37i9dQZF1EP6YuccBxUcC1"); //Maybe calling twice will fix the weird error where 
+                                                                                                    //daylist has no name
 
     const std::string daylistName {daylist_J["name"]};
 
