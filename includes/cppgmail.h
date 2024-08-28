@@ -2,8 +2,9 @@
 
 #include <iostream>
 #include "cpr/cpr.h"
-#include "readTxt.h"
+#include "base64/base64.hpp"
 #include "nlohmann/json.hpp"
+#include "readTxt.h"
 
 class Cppgmail {
 
@@ -43,6 +44,14 @@ class Cppgmail {
             m_refresh = m_response_J["refresh_token"].get<std::string>();
         }
 
+        const std::string createMessage(std::string& mimeMessage){
+            std::string rawTest = base64::to_base64(mimeMessage);
+            nlohmann::json raw;
+            raw["raw"] = rawTest;
+
+            return raw.dump();
+        }
+
         void refreshToken(){
             cpr::Response gmail_refresh = cpr::Post(cpr::Url{m_token},
                         cpr::Parameters{{"client_id", m_clientId},
@@ -64,9 +73,10 @@ class Cppgmail {
             return m_response_J["access_token"];
         }
 
-        void sendMessage(const nlohmann::json& message) {
+        void sendMessage(std::string& message) {
+            const std::string base64Message = createMessage(message);
             cpr::Response send_message = cpr::Post(cpr::Url{m_message_send},
-                cpr::Body{{message.dump()}},
+                cpr::Body{{base64Message}},
                 cpr::Header{{"authorization", "Bearer "+ m_accessToken},
                             {"Content-Type", "application/json"}});
         }
@@ -84,7 +94,7 @@ class Cppgmail {
         //Tokens
         std::string m_authCode {};
         std::string m_accessToken {};
-        std::string m_refresh {reader.getText("gmail_refresh.txt")};
+        std::string m_refresh {reader.getText("gmail_refresh.txt")}; //reader.getText("gmail_refresh.txt")
         //json
         nlohmann::json m_response_J {};
 };
