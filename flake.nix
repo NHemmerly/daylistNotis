@@ -29,6 +29,7 @@
               lcov
               vcpkg
               vcpkg-tool
+              openssl_3_3
             ] ++ (if system == "aarch64-darwin" then [ ] else [ gdb ]);
           };
       });
